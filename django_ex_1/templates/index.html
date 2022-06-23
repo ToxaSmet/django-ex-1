@@ -1,0 +1,37 @@
+{% load reservation_helpers %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rentals table</title>
+</head>
+<body>
+<table>
+<thead>
+    <tr>
+        <th>Rental name</th>
+        <th>ID</th>
+        <th>Checkin</th>
+        <th>Checkout</th>
+        <th>Previous reservation id</th>
+    </tr>
+</thead>
+<tbody>
+    {% for rental in rentals %}
+        {% with reservations=rental.reservations.all|to_list %}
+            {% for reservation in reservations %}
+                <tr>
+                    <td>{{ rental.name }}</td>
+                    <td>{{ reservation.id }}</td>
+                    <td>{{ reservation.checkin_at|date:"Y-m-d" }}</td>
+                    <td>{{ reservation.checkout_at|date:"Y-m-d" }}</td>
+                    <td>{{ reservations|get_previous_reservation_id:forloop.counter0|default:"-" }}</td>
+                </tr>
+            {% endfor %}
+        {% endwith %}
+    {% endfor %}
+</tbody>
+</table>
+</body>
+</html>
