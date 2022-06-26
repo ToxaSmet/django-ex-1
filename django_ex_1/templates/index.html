@@ -19,7 +19,7 @@
 </thead>
 <tbody>
     {% for rental in rentals %}
-        {% with reservations=rental.reservations.all|to_list %}
+        {% with reservations=rental.reservations.all %}
             {% for reservation in reservations %}
                 <tr>
                     <td>{{ rental.name }}</td>

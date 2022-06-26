@@ -11,8 +11,3 @@ def get_previous_reservation_id(reservations, index):
     if index > 0:
         return reservations[index - 1].id
     return None
-
-
-@register.filter
-def to_list(a):
-    return list(a)
