@@ -1,3 +1,4 @@
+import math
 import random
 
 from django.template.defaultfilters import striptags
@@ -6,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from django_ex_1.apps.main.models import Rental, Reservation
+from django_ex_1.apps.main.views import IndexView
 from django_ex_1.utils import generate_random_string
 
 
@@ -38,7 +40,7 @@ class IndexTest(TestCase):
 
     def parse_html_to_reservations(self, html_content):
         html_content = html_content.replace('\\n', '').replace('\'', '')
-        table_body = html_content.split('<tbody>')[1]
+        table_body = html_content.split('<tbody>')[1].split('</tbody>')[0]
         reservations = table_body.split('<tr>')[1:]
         res = []
         for reservation in reservations:
@@ -63,10 +65,14 @@ class IndexTest(TestCase):
     def test_data_exists(self):
         response = self.client.get(reverse('index'))
         reservations = response.context['reservations_page']
-        self.assertEqual(len(reservations), Reservation.objects.count())
+        self.assertGreater(len(reservations), 0)
 
-    def test_reservation_previous_id(self):
-        response = self.client.get(reverse('index'))
+    def _test_reservation_previous_id(self, page=None):
+        data = None
+        if page:
+            data = {'page': page}
+
+        response = self.client.get(reverse('index'), data=data)
         reservations = self.parse_html_to_reservations(str(response.content))
         previous_reservation = reservations[0]
         for reservation in reservations[1:]:
@@ -80,4 +86,14 @@ class IndexTest(TestCase):
                 self.assertEqual('-', reservation['previous_id'])
 
             previous_reservation = reservation
+
+    def test_reservation_previous_id(self):
+        self._test_reservation_previous_id()
+
+    def test_reservation_previous_id_on_pages(self):
+        c = Reservation.objects.count()
+        per_page = IndexView.per_page
+        pages = math.ceil(c / per_page)
+        for p in range(pages):
+            self._test_reservation_previous_id(p)
 
