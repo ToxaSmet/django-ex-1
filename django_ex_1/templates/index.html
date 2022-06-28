@@ -26,7 +26,7 @@
             <td>{{ reservation.id }}</td>
             <td>{{ reservation.checkin_at|date:"Y-m-d" }}</td>
             <td>{{ reservation.checkout_at|date:"Y-m-d" }}</td>
-            <td>{{ reservations_page.paginator.object_list_with_previous|get_previous_reservation_id:forloop.counter0|default:"-" }}</td>
+            <td>{{ reservations_page|get_previous_reservation_id:forloop.counter0|default:"-" }}</td>
         </tr>
     {% endfor %}
 </tbody>
