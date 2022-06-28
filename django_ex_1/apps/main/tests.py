@@ -62,8 +62,8 @@ class IndexTest(TestCase):
 
     def test_data_exists(self):
         response = self.client.get(reverse('index'))
-        rentals = response.context['rentals']
-        self.assertEqual(len(rentals), self.rentals_to_create_count)
+        reservations = response.context['reservations_page']
+        self.assertEqual(len(reservations), Reservation.objects.count())
 
     def test_reservation_previous_id(self):
         response = self.client.get(reverse('index'))
