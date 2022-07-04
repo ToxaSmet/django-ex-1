@@ -1,5 +1,4 @@
 {% load static %}
-{% load reservation_helpers %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,7 +25,7 @@
             <td>{{ reservation.id }}</td>
             <td>{{ reservation.checkin_at|date:"Y-m-d" }}</td>
             <td>{{ reservation.checkout_at|date:"Y-m-d" }}</td>
-            <td>{{ reservations_page|get_previous_reservation_id:forloop.counter0|default:"-" }}</td>
+            <td>{{ reservation.previous_id|default:"-" }}</td>
         </tr>
     {% endfor %}
 </tbody>

@@ -1,7 +1,6 @@
 import math
 import random
 
-from django.template.defaultfilters import striptags
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -38,22 +37,6 @@ class IndexTest(TestCase):
                     checkout_at=checkout,
                 )
 
-    def parse_html_to_reservations(self, html_content):
-        html_content = html_content.replace('\\n', '').replace('\'', '')
-        table_body = html_content.split('<tbody>')[1].split('</tbody>')[0]
-        reservations = table_body.split('<tr>')[1:]
-        res = []
-        for reservation in reservations:
-            rows = reservation.split('<td>')[1:]
-            res.append({
-                'rental_name': striptags(rows[0]).strip(),
-                'id': striptags(rows[1]).strip(),
-                'checkin': striptags(rows[2]).strip(),
-                'checkout': striptags(rows[3]).strip(),
-                'previous_id': striptags(rows[4]).strip(),
-            })
-        return res
-
     def setUp(self):
         self.create_random_data()
         return super().setUp()
@@ -73,19 +56,19 @@ class IndexTest(TestCase):
             data = {'page': page}
 
         response = self.client.get(reverse('index'), data=data)
-        reservations = self.parse_html_to_reservations(str(response.content))
-        previous_reservation = reservations[0]
-        for reservation in reservations[1:]:
-            if previous_reservation['rental_name'] == reservation['rental_name']:
-                self.assertEqual(previous_reservation['id'], reservation['previous_id'])
+        reservations = response.context['reservations_page']
+        for reservation in reservations:
 
-                previous_checkin = timezone.datetime.strptime(previous_reservation['checkin'], '%Y-%m-%d')
-                checkin = timezone.datetime.strptime(reservation['checkin'], '%Y-%m-%d')
-                self.assertGreaterEqual(checkin, previous_checkin)
+            previous_reservation = Reservation.objects.filter(
+                rental_id=reservation.rental_id,
+                checkin_at__lte=reservation.checkin_at
+            ).exclude(id=reservation.id).order_by('-checkin_at', '-id').only('id').first()
+
+            if previous_reservation:
+                self.assertEqual(previous_reservation.id, reservation.previous_id)
+                self.assertGreaterEqual(reservation.checkin_at, previous_reservation.checkin_at)
             else:
-                self.assertEqual('-', reservation['previous_id'])
-
-            previous_reservation = reservation
+                self.assertIsNone(reservation.previous_id)
 
     def test_reservation_previous_id(self):
         self._test_reservation_previous_id()
